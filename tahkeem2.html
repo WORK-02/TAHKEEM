@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكيم — مسابقة الثقلين</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+:root{--bg:#0f1923;--bg2:#162030;--bg3:#1e2d3d;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.18);--gold:#c9a84c;--gold2:#f0d080;--text:#e8edf2;--text2:#8fa3b8;--text3:#546a7b;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--r:12px;--rs:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.lbox{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:420px;text-align:center}
+.diamond{width:56px;height:56px;background:var(--gold);margin:0 auto 1.5rem;transform:rotate(45deg);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.diamond span{transform:rotate(-45deg);font-size:20px;font-weight:800;color:#0f1923}
+.lbox h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.lbox p{font-size:14px;color:var(--text2);margin-bottom:2rem}
+.lbox input{width:100%;padding:13px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);font-size:16px;font-family:'Tajawal',sans-serif;text-align:right;outline:none;margin-bottom:1rem;transition:border-color .2s}
+.lbox input:focus{border-color:var(--gold)}
+.btn-gold{width:100%;padding:13px;background:var(--gold);border:none;border-radius:var(--rs);color:#0f1923;font-size:16px;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;transition:background .2s}
+.btn-gold:hover{background:var(--gold2)}
+
+/* TOP BAR */
+#main{display:none}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:15px;font-weight:800;color:var(--gold)}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.stats{display:flex;gap:1.5rem;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.stats b{color:var(--text);font-weight:700}
+.topbar-btns{display:flex;gap:8px}
+.btn-sm{padding:7px 15px;border-radius:var(--rs);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .15s}
+.btn-sm:hover{background:var(--bg3);color:var(--text)}
+.btn-sm.g{background:var(--gold);border-color:var(--gold);color:#0f1923;font-weight:700}
+.btn-sm.g:hover{background:var(--gold2)}
+
+/* CONTENT */
+.content{padding:1.5rem;max-width:880px;margin:0 auto}
+
+/* SECTION HEADER */
+.sec-hdr{margin:2rem 0 1rem;display:flex;align-items:center;gap:12px}
+.sec-hdr-label{background:var(--gold);color:#0f1923;font-size:13px;font-weight:800;padding:5px 14px;border-radius:20px;white-space:nowrap}
+.sec-hdr-line{flex:1;height:1px;background:var(--border2)}
+
+/* QUESTION CARD */
+.qcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin-bottom:.9rem;transition:border-color .2s}
+.qcard.scored{border-color:rgba(201,168,76,.35)}
+.qtop{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem}
+.qnum{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0}
+.qtype{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.2);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--blue);white-space:nowrap;flex-shrink:0}
+.qtext{font-size:15px;line-height:1.85;color:var(--text);flex:1}
+.qtext .sub{font-size:13px;color:var(--text2);margin-top:4px;font-style:italic}
+
+/* CARD BTNS */
+.cbrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.9rem}
+.cbtn{padding:5px 13px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .15s}
+.cbtn:hover{background:var(--bg3);color:var(--text)}
+.cbtn.on{background:var(--bg3);color:var(--text)}
+.cbtn.abtn{border-color:rgba(46,204,113,.3);color:#2ecc71}
+.cbtn.abtn.on{background:rgba(46,204,113,.08)}
+
+/* REVEAL */
+.rev{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:11px 15px;font-size:13px;color:var(--text2);margin-bottom:9px;display:none;animation:fi .15s ease;line-height:1.8}
+.rev.show{display:block}
+.rev.aans{color:var(--text);border-color:rgba(46,204,113,.25);background:rgba(46,204,113,.04)}
+@keyframes fi{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+
+/* CONTROLS */
+.ctrls{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;padding-top:1rem;border-top:1px solid var(--border);margin-top:.5rem}
+.cg{display:flex;flex-direction:column;gap:6px}
+.clbl{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.05em}
+.gbtns{display:flex;gap:6px}
+.gbtn{padding:5px 13px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .15s}
+.gbtn:hover{background:var(--bg3)}
+.gbtn.on{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.4);color:var(--gold);font-weight:700}
+.dots{display:flex;gap:6px}
+.dot{width:31px;height:31px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Tajawal',sans-serif}
+.dot:hover{background:var(--bg3)}
+.dot[data-v="1"].on{background:rgba(231,76,60,.12);border-color:#e74c3c;color:#e74c3c}
+.dot[data-v="2"].on{background:rgba(230,126,34,.1);border-color:#e67e22;color:#e67e22}
+.dot[data-v="3"].on{background:rgba(241,196,15,.1);border-color:#f1c40f;color:#f1c40f}
+.dot[data-v="4"].on{background:rgba(46,204,113,.1);border-color:#27ae60;color:#27ae60}
+.dot[data-v="5"].on{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold)}
+.ntarea{flex:1;min-width:190px;display:flex;flex-direction:column;gap:5px}
+.ntarea textarea{padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:13px;font-family:'Tajawal',sans-serif;resize:vertical;min-height:58px;outline:none;transition:border-color .15s;text-align:right}
+.ntarea textarea:focus{border-color:var(--border2)}
+
+/* RESULT SECTION */
+.result-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:1.5rem;margin:1.5rem 0}
+.result-section h3{font-size:16px;font-weight:800;color:var(--text);margin-bottom:1.2rem;text-align:center}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+.rcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:1.2rem;text-align:center}
+.rcard-label{font-size:12px;color:var(--text3);font-weight:700;margin-bottom:.5rem}
+.rcard-val{font-size:28px;font-weight:800;color:var(--gold)}
+.rcard-sub{font-size:13px;color:var(--text2);margin-top:4px}
+.pct-bar{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden;margin:1rem 0 .5rem}
+.pct-fill{height:100%;background:var(--gold);border-radius:4px;transition:width .5s}
+.pct-label{font-size:13px;color:var(--text2);text-align:center}
+.q-scores-list{margin-top:1rem}
+.qsl-item{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-radius:var(--rs);background:var(--bg3);margin-bottom:6px;font-size:13px}
+.qsl-q{color:var(--text2);flex:1;padding-left:12px}
+.qsl-s{font-weight:700;font-size:14px}
+.qsl-s.s5{color:var(--gold)}
+.qsl-s.s4{color:#27ae60}
+.qsl-s.s3{color:#f1c40f}
+.qsl-s.s2{color:#e67e22}
+.qsl-s.s1{color:#e74c3c}
+.qsl-s.s0{color:var(--text3)}
+.result-note{font-size:12px;color:var(--text3);text-align:center;margin-top:.5rem}
+
+/* HISTORY */
+.hist-section{margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border)}
+.hist-ttl{font-size:15px;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:10px}
+.hist-ttl::after{content:'';flex:1;height:1px;background:var(--border)}
+.hcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:9px}
+.hcard:hover{border-color:var(--border2)}
+.htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:1rem;flex-wrap:wrap}
+.hname{font-size:14px;font-weight:700;color:var(--text)}
+.hdate{font-size:12px;color:var(--text3)}
+.hmeta{font-size:13px;color:var(--text2);display:flex;gap:1.5rem;flex-wrap:wrap}
+.hmeta b{color:var(--gold)}
+.hdel{padding:3px 11px;border-radius:6px;border:1px solid rgba(231,76,60,.2);background:transparent;color:rgba(231,76,60,.5);font-size:12px;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .15s}
+.hdel:hover{background:rgba(231,76,60,.08);color:var(--red);border-color:var(--red)}
+.empty{text-align:center;padding:2rem;color:var(--text3);font-size:14px;border:1px dashed var(--border);border-radius:var(--r)}
+.hnotes{margin-top:6px}
+.hnote{font-size:12px;color:var(--text3);margin-top:2px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lbox">
+    <div class="diamond"><span>ث</span></div>
+    <h1>مسابقة الثقلين</h1>
+    <p>لوحة التحكيم</p>
+    <input type="text" id="jname" placeholder="اسم المحكم..." />
+    <button class="btn-gold" onclick="start()">بدء التحكيم</button>
+  </div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">مسابقة الثقلين — تحكيم</div>
+      <div class="topbar-sub" id="jdisp"></div>
+    </div>
+    <div class="stats">
+      <div>مقيَّم: <b id="st-done">0</b>/<b id="st-tot">0</b></div>
+      <div>المجموع الكلي: <b id="st-sum">0</b></div>
+    </div>
+    <div class="topbar-btns">
+      <button class="btn-sm" onclick="resetAll()">إعادة تعيين</button>
+      <button class="btn-sm g" onclick="saveSession()">حفظ التحكيم</button>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+var SECTIONS = [
+  {
+    title: "المفردات", icon: "📖",
+    questions: [
+      {q:"معنى كلمة <b>أزِفَت</b> في قوله تعالى: ﴿أَزِفَتِ الْآزِفَةُ﴾", ans:"اقتربت ودنت — أي اقتربت القيامة", hint:"تستخدم للدلالة على الاقتراب الشديد", choices:"أ) بعُدت\nب) اقتربت ودنت\nج) هلكت", type:"مفردات"},
+      {q:"معنى كلمة <b>فَحَدِّث</b> في قوله تعالى: ﴿وَأَمَّا بِنِعْمَةِ رَبِّكَ فَحَدِّثْ﴾", ans:"فأخبر وتكلم بالنعمة — أي اذكر نعم الله وأظهرها شكراً", hint:"فعل أمر من التحديث", choices:"أ) فاكتم\nب) فارفض\nج) فأخبر وتكلم بالنعمة", type:"مفردات"},
+      {q:"معنى كلمة <b>دُسُر</b> في قوله تعالى: ﴿وَحَمَلْنَاهُ عَلَى ذَاتِ أَلْوَاحٍ وَدُسُرٍ﴾", ans:"المسامير التي تُثبَّت بها ألواح السفينة", hint:"تتعلق ببناء السفينة وتثبيتها", choices:"أ) أشرعة السفينة\nب) المجاذيف\nج) المسامير التي تثبّت ألواح السفينة", type:"مفردات"},
+      {q:"معنى كلمة <b>ثَجَّاجًا</b> في قوله تعالى: ﴿وَأَنزَلْنَا مِنَ الْمُعْصِرَاتِ مَاءً ثَجَّاجًا﴾", ans:"الماء الكثير المنصبّ بغزارة", hint:"تصف كمية الماء وشدة نزوله", choices:"أ) الماء الصافي النقي\nب) الماء الكثير المنصبّ بغزارة\nج) الماء البارد", type:"مفردات"},
+      {q:"معنى كلمة <b>كنود</b> في قوله تعالى: ﴿إِنَّ الْإِنسَانَ لِرَبِّهِ لَكَنُودٌ﴾", ans:"الجحود لنعم الله والكفور بها", hint:"صفة ذم تتعلق بالنعمة والكفران", choices:"أ) الشاكر المخلص\nب) الجاحد الكفور بالنعمة\nج) الجاهل المعاند", type:"مفردات"},
+      {q:"معنى كلمة <b>رهواً</b> في قوله تعالى: ﴿وَاتْرُكِ الْبَحْرَ رَهْوًا﴾", ans:"ساكناً ثابتاً منبسطاً — أي اتركه منفرجاً لبني إسرائيل", hint:"أُمر موسى بعد عبوره البحر", choices:"أ) متلاطماً هائجاً\nب) ساكناً منبسطاً منفرجاً\nج) عميقاً غامضاً", type:"مفردات"},
+      {q:"معنى كلمة <b>حنيفاً</b> في قوله تعالى: ﴿حَنِيفًا مُسْلِمًا﴾", ans:"مائلاً عن الشرك إلى التوحيد الخالص", hint:"تصف إبراهيم (ع) في دينه", choices:"أ) مائلاً نحو الكفر\nب) مائلاً عن الشرك إلى التوحيد\nج) متشدداً في العبادة", type:"مفردات"},
+      {q:"معنى كلمة <b>ضِيزَى</b> في قوله تعالى: ﴿تِلْكَ إِذًا قِسْمَةٌ ضِيزَى﴾", ans:"جائرة ظالمة — أي قسمة غير عادلة", hint:"تصف نوع القسمة الباطلة", choices:"أ) عادلة منصفة\nب) جائرة ظالمة\nج) غريبة عجيبة", type:"مفردات"},
+    ]
+  },
+  {
+    title: "القصص", icon: "📚",
+    questions: [
+      {q:"قصة <b>أصحاب السبت</b>: من هم؟ وماذا فعلوا؟ وما عقوبتهم؟", ans:"قوم من بني إسرائيل حرّم الله عليهم الصيد يوم السبت، فاحتالوا بوضع الشباك يوم الجمعة وأخذ السمك يوم الأحد، فمسخهم الله قردة", hint:"قصة في سورة البقرة والأعراف", choices:"أ) مسخوا خنازير\nب) مسخوا قردة\nج) أُغرقوا في البحر", type:"قصص"},
+      {q:"في قوله تعالى: ﴿فَاسْتَغَاثَهُ الَّذِي مِن شِيعَتِهِ عَلَى الَّذِي مِن عَدُوِّهِ﴾ — من المقصود؟ وما الحادثة؟", ans:"رجل من بني إسرائيل طلب نصرة موسى على رجل قبطي، فضربه موسى فمات", hint:"قصة في سورة القصص آية 15", choices:"أ) رجل طلب نصرة داوود\nب) رجل طلب نصرة موسى فضرب القبطي\nج) رجل طلب نصرة سليمان", type:"قصص"},
+      {q:"كيف بنى النبي إبراهيم (ع) الكعبة؟ ومن بناها معه؟", ans:"بنى إبراهيم الكعبة مع ابنه إسماعيل بأمر الله لتكون قبلة للناس — ﴿وَإِذْ يَرْفَعُ إِبْرَاهِيمُ الْقَوَاعِدَ مِنَ الْبَيْتِ وَإِسْمَاعِيلُ﴾", hint:"سورة البقرة آية 127", choices:"أ) بناها إبراهيم وحده\nب) بناها إبراهيم مع إسحاق\nج) بناها إبراهيم مع إسماعيل", type:"قصص"},
+      {q:"ما قصة لقاء موسى (ع) بشعيب (ع)؟ وكيف انتهت؟", ans:"هرب موسى إلى مدين بعد قتل القبطي، فسقى لابنتي شعيب، فدعاه شعيب وزوّجه إحدى ابنتيه — ﴿إِنِّي أُرِيدُ أَنْ أُنكِحَكَ إِحْدَى ابْنَتَيَّ﴾", hint:"سورة القصص", choices:"أ) موسى قاتل مع شعيب\nب) موسى هرب وتزوج ابنة شعيب\nج) موسى علّم شعيب النبوة", type:"قصص"},
+      {q:"ما قصة سليمان (ع) مع ملكة سبأ؟ وكيف انتهت؟", ans:"أخبر الهدهد سليمان عن ملكة سبأ التي تعبد الشمس، فأرسل إليها رسالة يدعوها للتوحيد، فأسلمت الملكة بلقيس", hint:"سورة النمل", choices:"أ) سليمان حارب سبأ وهزمها\nب) بلقيس رفضت الإسلام\nج) بلقيس أسلمت بعد رسالة سليمان", type:"قصص"},
+      {q:"كيف تسلّم الإمام الرضا (ع) ولاية العهد؟ وما الشروط التي اشترطها؟", ans:"فرضها عليه المأمون العباسي مكرهاً سنة 201هـ، وقبلها الإمام بشرط ألا يعيّن ولا يعزل ولا يتدخل في الحكم", hint:"من كتاب الإرشاد للمفيد", choices:"أ) طلبها الإمام من المأمون\nب) قبلها مكرهاً بشروط عدم التدخل\nج) رفضها رفضاً تاماً", type:"قصص"},
+      {q:"ما قصة شعب أبي طالب؟ وكم امتدت؟ وما أثرها على النبي (ص)؟", ans:"حاصرت قريش بني هاشم والنبي (ص) ثلاث سنوات، منعوا عنهم الطعام والتجارة حتى كانوا يأكلون أوراق الشجر", hint:"من كتاب بحار الأنوار للمجلسي", choices:"أ) سنة واحدة\nب) خمس سنوات\nج) ثلاث سنوات", type:"قصص"},
+      {q:"ما قصة إخراج النبي آدم (ع) من الجنة؟ ومن تسبب في ذلك؟", ans:"أكل آدم من الشجرة التي نهاه الله عنها بعد وسوسة إبليس، فأُهبط إلى الأرض لبدء حياة البشر — ﴿فَأَزَلَّهُمَا الشَّيْطَانُ عَنْهَا﴾", hint:"سورة البقرة آية 36", choices:"أ) آدم خرج طوعاً من الجنة\nب) إبليس وسوس له فأكل من الشجرة\nج) ملائكة أخرجته بأمر الله", type:"قصص"},
+    ]
+  },
+  {
+    title: "عدّد", icon: "🔢",
+    questions: [
+      {q:"عدّد <b>مناسبات أهل البيت (ع) في شهر صفر</b>", ans:"1 صفر: دخول السبايا للشام\n7 صفر: شهادة الإمام الحسن\n20 صفر: زيارة الأربعين\n28 صفر: وفاة النبي (ص)\n29 صفر: شهادة الإمام الرضا", hint:"ابدأ من أول الشهر واذكر كل حدث بتاريخه", choices:"أ) 3 مناسبات فقط\nب) 5 مناسبات\nج) 10 مناسبات", type:"عدّد"},
+      {q:"عدّد <b>مناسبات أهل البيت (ع) في شهر شعبان</b>", ans:"3 شعبان: ولادة الإمام الحسين\n4 شعبان: ولادة العباس\n5 شعبان: ولادة الإمام السجاد\n11 شعبان: ولادة علي الأكبر\n15 شعبان: ولادة الإمام المهدي", hint:"شعبان شهر المواليد الكريمة لأهل البيت", choices:"أ) مولدان فقط\nب) ثلاثة موالد\nج) خمسة موالد", type:"عدّد"},
+      {q:"عدّد <b>فروع الدين العشرة</b> عند الإمامية", ans:"1- الصلاة\n2- الصوم\n3- الحج\n4- الزكاة\n5- الخمس\n6- الجهاد\n7- الأمر بالمعروف\n8- النهي عن المنكر\n9- التولي\n10- التبري", hint:"تبدأ بالصلاة وتنتهي بالتولي والتبري", choices:"أ) 5 فروع\nب) 7 فروع\nج) 10 فروع", type:"عدّد"},
+      {q:"عدّد <b>عشر غزوات</b> من غزوات النبي (ص)", ans:"بدر، أحد، الخندق، بني قريظة، بني المصطلق، خيبر، الحديبية، حنين، تبوك، فتح مكة", hint:"ابدأ ببدر وهي أول الغزوات الكبرى", choices:"أ) بدر وأحد وخيبر فقط\nب) 10 غزوات متعددة\nج) 3 غزوات كبرى فقط", type:"عدّد"},
+      {q:"عدّد <b>عشرة من أصحاب الإمام الحسين (ع)</b> في كربلاء", ans:"العباس بن علي، علي الأكبر، حبيب بن مظاهر، مسلم بن عوسجة، زهير بن القين، جون مولى أبي ذر، نافع بن هلال، الحر الرياحي، وهب الكلبي، عابس بن شبيب", hint:"ابدأ بأبرزهم وأشهرهم كالعباس وعلي الأكبر", choices:"أ) 3 أصحاب مشهورين\nب) 5 أصحاب\nج) 10 أصحاب", type:"عدّد"},
+      {q:"عدّد <b>النساء المذكورات في القرآن الكريم</b> (بأسمائهن أو وصفهن)", ans:"مريم، آسيا، أم موسى، امرأة فرعون، امرأة نوح، امرأة لوط، امرأة العزيز، بلقيس", hint:"المرأة الوحيدة المذكورة باسمها صريحاً هي مريم", choices:"أ) امرأتان فقط\nب) أربع نساء\nج) ثماني نساء", type:"عدّد"},
+      {q:"عدّد <b>المدن المذكورة في القرآن الكريم</b>", ans:"مكة، المدينة، مصر، بابل، مدين، سبأ، إرم، سدوم", hint:"ابدأ بمكة المكرمة", choices:"أ) مكة والمدينة فقط\nب) خمس مدن\nج) ثماني مدن", type:"عدّد"},
+      {q:"عدّد <b>عشرة من عذابات جهنم</b> كما وردت في القرآن الكريم", ans:"النار، الحميم، الزقوم، الغسلين، السعير، الحطمة، السموم، الغاشية، الجحيم، الصديد", hint:"الزقوم والحميم من أشهرها", choices:"أ) النار فقط\nب) ثلاثة أنواع\nج) عشرة أنواع", type:"عدّد"},
+    ]
+  },
+  {
+    title: "آيات الولاية", icon: "🌟",
+    questions: [
+      {q:"اذكر <b>آية الولاية</b> كاملة — فيمن نزلت؟ وما القرينة الداخلية التي تخصّصها؟", ans:"﴿إِنَّمَا وَلِيُّكُمُ اللَّهُ وَرَسُولُهُ وَالَّذِينَ آمَنُوا الَّذِينَ يُقِيمُونَ الصَّلَاةَ وَيُؤْتُونَ الزَّكَاةَ وَهُمْ رَاكِعُونَ﴾\nنزلت في الإمام علي (ع) حين تصدّق بخاتمه وهو راكع — والقرينة: «وهم راكعون» لا تنطبق إلا على من تصدّق في الصلاة", hint:"المائدة آية 55 — التصدق في الصلاة", choices:"أ) نزلت في جميع المؤمنين عموماً\nب) نزلت في الإمام علي حين تصدق بخاتمه راكعاً\nج) نزلت في الصحابة يوم بدر", type:"آيات الولاية"},
+      {q:"اذكر <b>آية المباهلة</b> — من خرج مع النبي (ص)؟ وما دلالتها؟", ans:"﴿فَقُلْ تَعَالَوْا نَدْعُ أَبْنَاءَنَا وَأَبْنَاءَكُمْ وَنِسَاءَنَا وَنِسَاءَكُمْ وَأَنفُسَنَا وَأَنفُسَكُمْ﴾\nخرج النبي (ص) مع: علي وفاطمة والحسن والحسين\nدلالتها: أن علياً نفس النبي، وهم أهل البيت بامتياز", hint:"آل عمران آية 61 — مع نصارى نجران", choices:"أ) خرج النبي وحده\nب) خرج النبي مع أصحابه العشرة\nج) خرج مع علي وفاطمة والحسن والحسين", type:"آيات الولاية"},
+      {q:"اذكر <b>آية التبليغ</b> — متى نزلت؟ وما الذي أُمر النبي (ص) بتبليغه؟", ans:"﴿يَا أَيُّهَا الرَّسُولُ بَلِّغْ مَا أُنزِلَ إِلَيْكَ مِن رَبِّكَ وَإِن لَّمْ تَفْعَلْ فَمَا بَلَّغْتَ رِسَالَتَهُ﴾\nنزلت في طريق العودة من حجة الوداع عند غدير خم\nأُمر النبي بتبليغ ولاية الإمام علي (ع)", hint:"المائدة آية 67 — يوم الغدير", choices:"أ) نزلت في تبليغ أحكام الزكاة\nب) نزلت في تبليغ ولاية علي (ع) في غدير خم\nج) نزلت في الهجرة إلى المدينة", type:"آيات الولاية"},
+      {q:"اذكر <b>آية التطهير</b> — فيمن نزلت؟ ولماذا يستدل بها أهل البيت (ع)؟", ans:"﴿إِنَّمَا يُرِيدُ اللَّهُ لِيُذْهِبَ عَنكُمُ الرِّجْسَ أَهْلَ الْبَيْتِ وَيُطَهِّرَكُمْ تَطْهِيرًا﴾\nنزلت في النبي وعلي وفاطمة والحسن والحسين (حديث الكساء)\nيستدلون بها على عصمتهم وأنهم المرجع في تفسير الدين", hint:"الأحزاب آية 33 — حديث الكساء", choices:"أ) نزلت في نساء النبي فقط\nب) نزلت في أهل الكساء الخمسة\nج) نزلت في جميع المسلمين", type:"آيات الولاية"},
+    ]
+  },
+  {
+    title: "ما الفرق بين؟", icon: "⚖️",
+    questions: [
+      {q:"ما الفرق بين <b>الكتاب</b> و<b>القرآن</b> حين يُذكران في القرآن الكريم؟", ans:"الكتاب: الوحي المكتوب المدوَّن — يشير للجانب التشريعي المحفوظ\nالقرآن: الوحي المقروء المتلو — يشير لجانب التلاوة والقراءة", hint:"أحدهما مكتوب والآخر متلو", choices:"أ) لا فرق بينهما إطلاقاً\nب) الكتاب مكتوب والقرآن متلو\nج) الكتاب أحدث من القرآن", type:"ما الفرق؟"},
+      {q:"ما الفرق بين <b>الغفران</b> و<b>العفو</b> في القرآن الكريم؟", ans:"الغفران: ستر الذنب مع عدم المؤاخذة\nالعفو: محو الذنب وإسقاط العقوبة كلياً\nوالعفو أشمل لأنه يزيل الذنب من السجل", hint:"أحدهما ستر والآخر محو", choices:"أ) هما بمعنى واحد تماماً\nب) الغفران ستر والعفو محو\nج) الغفران أشمل من العفو", type:"ما الفرق؟"},
+      {q:"ما الفرق بين <b>الظن</b> و<b>الشك</b> في القرآن الكريم؟", ans:"الظن: ترجيح أحد الاحتمالين مع احتمال الآخر\nالشك: تساوي الاحتمالين دون ترجيح لأيٍّ منهما", hint:"أحدهما فيه ترجيح والآخر لا", choices:"أ) هما بمعنى واحد\nب) الظن ترجيح والشك تساوٍ\nج) الشك أقوى من الظن", type:"ما الفرق؟"},
+      {q:"ما الفرق بين <b>الإنفاق</b> و<b>الصدقة</b> في القرآن الكريم؟", ans:"الإنفاق: أشمل — يشمل الواجب كالنفقة على الأهل والمستحب\nالصدقة: غالباً تطوعية تُعطى للفقراء تقرباً لله", hint:"أيهما أشمل وأعم؟", choices:"أ) الصدقة أشمل من الإنفاق\nب) الإنفاق أشمل ويشمل الواجب والمستحب\nج) لا فرق بينهما", type:"ما الفرق؟"},
+      {q:"ما الفرق بين <b>الذنب</b> و<b>المعصية</b> في القرآن الكريم؟", ans:"الذنب: ما يترتب عليه عقاب في الآخرة\nالمعصية: مخالفة أمر الله سواء ترتّب عليها عقاب أم لا — وهي أشمل", hint:"أيهما يرتبط بالعقاب مباشرة؟", choices:"أ) هما بمعنى واحد تماماً\nب) الذنب له عقاب والمعصية مخالفة الأمر\nج) المعصية أخف من الذنب", type:"ما الفرق؟"},
+      {q:"ما الفرق بين <b>الخوف</b> و<b>الخشية</b> في القرآن الكريم؟ واذكر الآية التي تدل على ذلك", ans:"الخوف: توقع الضرر — يعتري أي أحد\nالخشية: خوف مقرون بمعرفة وتعظيم — خاصة بالعلماء\n﴿إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ﴾", hint:"أيهما مقترن بالعلم والمعرفة؟", choices:"أ) هما بمعنى واحد\nب) الخشية أخص وتقترن بالعلم والتعظيم\nج) الخوف أشد من الخشية دائماً", type:"ما الفرق؟"},
+    ]
+  },
+  {
+    title: "قارن", icon: "↔️",
+    questions: [
+      {q:"قارن بين موقف <b>الإمام الحسن (ع)</b> و<b>الإمام الحسين (ع)</b> من السلطة الأموية — لماذا اختلف موقفهما؟", ans:"الإمام الحسن: اختار الصلح مع معاوية لحفظ الإسلام ومنع سفك الدماء — الظروف لم تكن مهيّأة\nالإمام الحسين: قام بالثورة ضد يزيد لأن السكوت صار إقراراً بالباطل وإماتة للدين\nكلاهما فعل تكليفه في زمانه", hint:"الحسن صالح والحسين ثار — لماذا؟", choices:"أ) كلاهما اختار الثورة\nب) كلاهما اختار الصلح\nج) الحسن صالح والحسين ثار لأن الظروف اختلفت", type:"قارن"},
+      {q:"قارن بين أسلوب <b>الإمام الصادق (ع)</b> و<b>الإمام الكاظم (ع)</b> في نشر العلم", ans:"الإمام الصادق: استغل ضعف الدولة الأموية لنشر العلم علناً — أسّس المدرسة الجعفرية وخرّج آلاف الطلاب\nالإمام الكاظم: عاش تحت القمع العباسي فنشر العلم سراً عبر الوكلاء والتلاميذ", hint:"أحدهما نشر علناً والآخر سراً — لماذا؟", choices:"أ) كلاهما نشرا العلم سراً\nب) الصادق نشر علناً والكاظم سراً بسبب الظرف السياسي\nج) كلاهما نشرا العلم علناً", type:"قارن"},
+    ]
+  },
+];
+
+var scores={}, groups={}, notes={}, judgeName="", sessions=[];
+try{sessions=JSON.parse(localStorage.getItem('tq3_sessions')||'[]');}catch(e){sessions=[];}
+
+var allQ = [];
+SECTIONS.forEach(function(s,si){s.questions.forEach(function(q,qi){allQ.push({si:si,qi:qi,q:q});});});
+
+function start(){
+  var n=document.getElementById('jname').value.trim();
+  if(!n){alert('الرجاء إدخال اسم المحكم');return;}
+  judgeName=n;
+  document.getElementById('login').style.display='none';
+  document.getElementById('main').style.display='block';
+  document.getElementById('jdisp').textContent='المحكم: '+judgeName;
+  document.getElementById('st-tot').textContent=allQ.length;
+  buildAll();
+  renderHist();
+}
+
+function buildAll(){
+  var c=document.getElementById('content');
+  c.innerHTML='';
+  var globalIdx=0;
+  SECTIONS.forEach(function(sec,si){
+    // Section header
+    var sh=document.createElement('div');
+    sh.className='sec-hdr';
+    sh.innerHTML='<span class="sec-hdr-label">'+sec.icon+' '+sec.title+'</span><div class="sec-hdr-line"></div>';
+    c.appendChild(sh);
+
+    sec.questions.forEach(function(q,qi){
+      var idx=globalIdx++;
+      var card=document.createElement('div');
+      card.className='qcard';
+      card.id='qc-'+idx;
+      var dotsH=[1,2,3,4,5].map(function(n){return '<div class="dot" data-v="'+n+'" onclick="setScore('+idx+','+n+',this)">'+n+'</div>';}).join('');
+      card.innerHTML=
+        '<div class="qtop">'+
+          '<span class="qnum">س'+(idx+1)+'</span>'+
+          '<div class="qtext">'+q.q+'</div>'+
+          '<span class="qtype">'+q.type+'</span>'+
+        '</div>'+
+        '<div class="cbrow">'+
+          '<button class="cbtn abtn" onclick="togRev(\'a-'+idx+'\',this)">إظهار الجواب</button>'+
+          '<button class="cbtn" onclick="togRev(\'h-'+idx+'\',this)">تلميح</button>'+
+          '<button class="cbtn" onclick="togRev(\'c-'+idx+'\',this)">خيارات</button>'+
+        '</div>'+
+        '<div class="rev aans" id="a-'+idx+'">'+q.ans.replace(/\n/g,'<br>')+'</div>'+
+        '<div class="rev" id="h-'+idx+'">💡 '+q.hint+'</div>'+
+        '<div class="rev" id="c-'+idx+'">'+q.choices.replace(/\n/g,'<br>')+'</div>'+
+        '<div class="ctrls">'+
+          '<div class="cg">'+
+            '<div class="clbl">المجموعة</div>'+
+            '<div class="gbtns" id="gb-'+idx+'">'+
+              '<button class="gbtn" onclick="setGrp('+idx+',\'1\')">الأولى</button>'+
+              '<button class="gbtn" onclick="setGrp('+idx+',\'2\')">الثانية</button>'+
+            '</div>'+
+          '</div>'+
+          '<div class="cg">'+
+            '<div class="clbl">الدرجة من 5</div>'+
+            '<div class="dots" id="dt-'+idx+'">'+dotsH+'</div>'+
+          '</div>'+
+          '<div class="ntarea cg">'+
+            '<div class="clbl">ملاحظات</div>'+
+            '<textarea id="nt-'+idx+'" placeholder="ملاحظة اختيارية..." oninput="notes['+idx+']=this.value"></textarea>'+
+          '</div>'+
+        '</div>';
+      c.appendChild(card);
+    });
+
+    // Result button for this section
+    var rb=document.createElement('div');
+    rb.style.cssText='margin:1rem 0 1.5rem;text-align:center';
+    rb.innerHTML='<button class="btn-sm g" onclick="showResult(\'res-'+si+'\')">عرض نتيجة قسم '+sec.title+' ◆</button>'+
+      '<div id="res-'+si+'" style="display:none;margin-top:1rem"></div>';
+    c.appendChild(rb);
+  });
+
+  // History section
+  var hs=document.createElement('div');
+  hs.className='hist-section';
+  hs.innerHTML='<div class="hist-ttl">النسخ المحفوظة</div><div id="hlist"></div>';
+  c.appendChild(hs);
+}
+
+function togRev(id,btn){
+  var el=document.getElementById(id);
+  var on=el.classList.toggle('show');
+  btn.classList.toggle('on',on);
+}
+
+function setScore(idx,n,el){
+  scores[idx]=n;
+  var card=document.getElementById('qc-'+idx);
+  card.classList.add('scored');
+  document.getElementById('dt-'+idx).querySelectorAll('.dot').forEach(function(d){d.classList.toggle('on',parseInt(d.dataset.v)===n);});
+  updateStats();
+}
+
+function setGrp(idx,g){
+  groups[idx]=g;
+  document.getElementById('gb-'+idx).querySelectorAll('.gbtn').forEach(function(b,j){b.classList.toggle('on',String(j+1)===g);});
+}
+
+function updateStats(){
+  var done=Object.keys(scores).length;
+  var sum=Object.values(scores).reduce(function(a,b){return a+b;},0);
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-sum').textContent=sum+' / '+(done*5);
+}
+
+function showResult(divId){
+  var parts=divId.replace('res-','');
+  var si=parseInt(parts);
+  var sec=SECTIONS[si];
+
+  // figure out global index offset for this section
+  var offset=0;
+  for(var i=0;i<si;i++) offset+=SECTIONS[i].questions.length;
+
+  var g1total=0,g1max=0,g1count=0;
+  var g2total=0,g2max=0,g2count=0;
+  var details=[];
+  var unscored=0;
+
+  sec.questions.forEach(function(q,qi){
+    var idx=offset+qi;
+    var sc=scores[idx];
+    var gr=groups[idx];
+    var nt=notes[idx]||'';
+    details.push({idx:idx,q:q.q,sc:sc,gr:gr,nt:nt});
+    if(sc===undefined){unscored++;return;}
+    if(gr==='1'){g1total+=sc;g1max+=5;g1count++;}
+    else if(gr==='2'){g2total+=sc;g2max+=5;g2count++;}
+  });
+
+  var p1=g1max?Math.round(g1total/g1max*100):0;
+  var p2=g2max?Math.round(g2total/g2max*100):0;
+
+  var detailRows=details.map(function(d){
+    var sc=d.sc!==undefined?d.sc:'-';
+    var cls=d.sc!==undefined?'s'+d.sc:'s0';
+    var grLabel=d.gr?'مج'+d.gr:'—';
+    return '<div class="qsl-item">'+
+      '<span class="qnum" style="flex-shrink:0">س'+(d.idx+1)+'</span>'+
+      '<span class="qsl-q">'+d.q.replace(/<[^>]+>/g,'').substring(0,60)+'...</span>'+
+      '<span style="font-size:12px;color:var(--text3);margin-left:8px">'+grLabel+'</span>'+
+      '<span class="qsl-s '+cls+'">'+sc+'/5</span>'+
+    '</div>';
+  }).join('');
+
+  var html=
+    '<div class="result-section">'+
+      '<h3>نتيجة قسم: '+sec.icon+' '+sec.title+'</h3>'+
+      '<div class="result-grid">'+
+        '<div class="rcard">'+
+          '<div class="rcard-label">المجموعة الأولى</div>'+
+          '<div class="rcard-val">'+g1total+'<span style="font-size:16px;color:var(--text2)">/'+g1max+'</span></div>'+
+          '<div class="rcard-sub">'+g1count+' سؤال — '+p1+'%</div>'+
+        '</div>'+
+        '<div class="rcard">'+
+          '<div class="rcard-label">المجموعة الثانية</div>'+
+          '<div class="rcard-val">'+g2total+'<span style="font-size:16px;color:var(--text2)">/'+g2max+'</span></div>'+
+          '<div class="rcard-sub">'+g2count+' سؤال — '+p2+'%</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pct-bar"><div class="pct-fill" id="pf1-'+si+'" style="width:0"></div></div>'+
+      '<div class="pct-label">إجمالي القسم: '+(g1total+g2total)+' / '+(g1max+g2max)+'</div>'+
+      (unscored?'<div class="result-note">⚠ '+unscored+' سؤال لم يُقيَّم بعد</div>':'')+
+      '<div class="q-scores-list" style="margin-top:1rem">'+detailRows+'</div>'+
+    '</div>';
+
+  var el=document.getElementById(divId);
+  el.style.display='block';
+  el.innerHTML=html;
+  setTimeout(function(){
+    var totalPct=g1max+g2max?Math.round((g1total+g2total)/(g1max+g2max)*100):0;
+    var pf=document.getElementById('pf1-'+si);
+    if(pf) pf.style.width=totalPct+'%';
+  },100);
+}
+
+function saveSession(){
+  var done=Object.keys(scores).length;
+  if(!done){alert('لم يتم تقييم أي سؤال بعد');return;}
+  var s={
+    judge:judgeName,
+    date:new Date().toLocaleString('ar-SA'),
+    scores:Object.assign({},scores),
+    groups:Object.assign({},groups),
+    notes:Object.assign({},notes),
+    total:Object.values(scores).reduce(function(a,b){return a+b;},0),
+    done:done,
+    maxPossible:done*5
+  };
+  sessions.unshift(s);
+  try{localStorage.setItem('tq3_sessions',JSON.stringify(sessions));}catch(e){}
+  renderHist();
+  alert('تم الحفظ بنجاح ✓');
+}
+
+function resetAll(){
+  if(!confirm('إعادة تعيين جميع الدرجات؟'))return;
+  scores={};groups={};notes={};
+  buildAll();
+  updateStats();
+  renderHist();
+}
+
+function delSession(i){
+  if(!confirm('حذف هذه النسخة؟'))return;
+  sessions.splice(i,1);
+  try{localStorage.setItem('tq3_sessions',JSON.stringify(sessions));}catch(e){}
+  renderHist();
+}
+
+function renderHist(){
+  var el=document.getElementById('hlist');
+  if(!el)return;
+  if(!sessions.length){el.innerHTML='<div class="empty">لا توجد نسخ محفوظة بعد</div>';return;}
+  el.innerHTML=sessions.map(function(s,i){
+    var pct=s.maxPossible?Math.round(s.total/s.maxPossible*100):0;
+    var noteLines=Object.entries(s.notes||{}).filter(function(x){return x[1];}).map(function(x){return '<div class="hnote">س'+(parseInt(x[0])+1)+': '+x[1]+'</div>';}).join('');
+    return '<div class="hcard">'+
+      '<div class="htop">'+
+        '<span class="hname">◆ '+s.judge+'</span>'+
+        '<div style="display:flex;gap:8px;align-items:center">'+
+          '<span class="hdate">'+s.date+'</span>'+
+          '<button class="hdel" onclick="delSession('+i+')">حذف</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="hmeta">'+
+        '<div>مقيَّم: <b>'+s.done+'</b> سؤال</div>'+
+        '<div>المجموع: <b>'+s.total+'</b> / '+s.maxPossible+'</div>'+
+        '<div>النسبة: <b>'+pct+'%</b></div>'+
+      '</div>'+
+      (noteLines?'<div class="hnotes">'+noteLines+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  renderHist();
+  document.getElementById('jname').addEventListener('keydown',function(e){if(e.key==='Enter')start();});
+});
+</script>
+</body>
+</html>
