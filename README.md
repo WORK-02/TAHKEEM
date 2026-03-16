@@ -266,6 +266,9 @@ input[type=radio]{width:auto;padding:0;}
 .smtbl th{font-size:.72rem;font-weight:700;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;}
 .smtbl td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:.83rem;}
 .smtbl tr:last-child td{border:none;}
+.df-chip{padding:5px 12px;border-radius:999px;font-size:.8rem;font-weight:700;border:1.5px solid var(--border);background:var(--s1);color:var(--muted);cursor:pointer;transition:all .14s;}
+.df-chip:hover{border-color:var(--a1);color:var(--a1);}
+.df-chip.on{background:var(--a1);color:#fff;border-color:var(--a1);}
 
 /* particles / flash */
 .parts{position:fixed;inset:0;pointer-events:none;z-index:999;}
@@ -414,14 +417,23 @@ input[type=radio]{width:auto;padding:0;}
   <div class="jbody">
     <div class="tbox">
       <div class="tdisp" id="tdisp">00:30</div>
-      <div>
-        <div class="tpre-row">
-          <div class="tpre" onclick="setT(10)">10ث</div><div class="tpre" onclick="setT(15)">15ث</div><div class="tpre" onclick="setT(30)">30ث</div><div class="tpre" onclick="setT(60)">1د</div><div class="tpre" onclick="setT(90)">90ث</div><div class="tpre" onclick="setT(120)">2د</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="font-size:.72rem;font-weight:700;color:var(--muted);">المدة:</span>
+          <div class="tpre-row" style="margin-bottom:0;">
+            <div class="tpre" onclick="setT(10)">10ث</div>
+            <div class="tpre" onclick="setT(15)">15ث</div>
+            <div class="tpre" onclick="setT(30)">30ث</div>
+            <div class="tpre" onclick="setT(60)">1د</div>
+            <div class="tpre" onclick="setT(90)">90ث</div>
+            <div class="tpre" onclick="setT(120)">2د</div>
+          </div>
         </div>
         <div class="tctrl">
           <div class="tbtn" id="tplayBtn" onclick="toggleT()">▶</div>
           <div class="tbtn" onclick="resetT()">↺</div>
           <div class="tbtn" onclick="pushBoards()" title="تحديث الشاشات">↑</div>
+          <div id="tSecsBadge" style="background:rgba(79,70,229,.1);border:1.5px solid rgba(79,70,229,.2);border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:700;color:var(--a1);display:flex;align-items:center;">30ث مضبوط</div>
         </div>
       </div>
     </div>
@@ -489,6 +501,14 @@ input[type=radio]{width:auto;padding:0;}
     </div>
   </div>
   <div class="bankbody">
+    <div id="diffFilter" style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:.74rem;font-weight:700;color:var(--muted);">تصفية:</span>
+      <div class="df-chip on" data-d="0" onclick="filterDiff(0)">الكل</div>
+      <div class="df-chip" data-d="1" onclick="filterDiff(1)">⭐ سهل</div>
+      <div class="df-chip" data-d="2" onclick="filterDiff(2)">⭐⭐ متوسط</div>
+      <div class="df-chip" data-d="3" onclick="filterDiff(3)">⭐⭐⭐ صعب</div>
+      <div class="df-chip" data-d="4" onclick="filterDiff(4)">🔥 تحدي</div>
+    </div>
     <div id="pendingSec" style="display:none;">
       <div class="lbl" style="color:var(--orange);">بانتظار موافقة المشرف <span id="pendCnt" style="background:rgba(249,115,22,.12);color:var(--orange);padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700;"></span></div>
       <div id="pendList" style="margin-bottom:14px;"></div>
@@ -654,11 +674,53 @@ const LS={g:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return nul
 /* ══════════════════════════════════════════
    BUILTIN BANK
 ══════════════════════════════════════════ */
+// d: difficulty — 1=سهل, 2=متوسط, 3=صعب, 4=تحدي
 const BANK0=[
-  {name:'ثقافة عامة',qs:[{t:'ما عاصمة المملكة العربية السعودية؟',a:'الرياض',p:100},{t:'كم عدد أيام الأسبوع؟',a:'7 أيام',p:100},{t:'ما أكبر كوكب في المجموعة الشمسية؟',a:'المشتري',p:200},{t:'ما أطول نهر في العالم؟',a:'نيل',p:200},{t:'في أي سنة تأسست المملكة؟',a:'1932م',p:300},{t:'ما الرمز الكيميائي للذهب؟',a:'Au',p:400},{t:'كم عدد الدول المعترف بها دولياً؟',a:'195 دولة',p:500}]},
-  {name:'علوم وتكنولوجيا',qs:[{t:'ما الوحدة الأساسية للمعلومات في الحاسوب؟',a:'البت',p:100},{t:'من اخترع الهاتف؟',a:'غراهام بيل',p:200},{t:'ما الغاز الأوفر في الغلاف الجوي؟',a:'النيتروجين 78%',p:200},{t:'ما سرعة الضوء؟',a:'300,000 كم/ث',p:300},{t:'ما معنى HTTP؟',a:'HyperText Transfer Protocol',p:400}]},
-  {name:'جغرافيا',qs:[{t:'ما أكبر قارة مساحةً؟',a:'آسيا',p:100},{t:'ما أعلى جبل في العالم؟',a:'إيفرست',p:100},{t:'ما أصغر دولة في العالم؟',a:'الفاتيكان',p:200},{t:'ما أكبر صحراء في العالم؟',a:'الصحراء الكبرى',p:300},{t:'أي دولة أكبر سكاناً؟',a:'الهند',p:200}]},
-  {name:'تاريخ',qs:[{t:'متى انتهت الحرب العالمية الثانية؟',a:'1945م',p:100},{t:'من أول إنسان على القمر؟',a:'نيل أرمسترونغ',p:200},{t:'في أي عام اكتشف كولومبوس أمريكا؟',a:'1492م',p:300},{t:'متى سقط جدار برلين؟',a:'1989م',p:300}]},
+  {name:'ثقافة عامة',qs:[
+    {t:'ما عاصمة المملكة العربية السعودية؟',a:'الرياض',p:100,d:1},
+    {t:'كم عدد أيام الأسبوع؟',a:'7 أيام',p:100,d:1},
+    {t:'ما أكبر كوكب في المجموعة الشمسية؟',a:'المشتري',p:200,d:2},
+    {t:'ما أطول نهر في العالم؟',a:'نيل',p:200,d:2},
+    {t:'في أي سنة تأسست المملكة؟',a:'1932م',p:300,d:2},
+    {t:'ما الرمز الكيميائي للذهب؟',a:'Au',p:400,d:3},
+    {t:'كم عدد الدول المعترف بها دولياً؟',a:'195 دولة',p:500,d:3},
+    {t:'ما اللغة الرسمية لدولة البرازيل؟',a:'البرتغالية',p:300,d:3},
+    {t:'كم سنة كانت مدة حرب المئة عام؟',a:'116 سنة',p:500,d:4},
+  ]},
+  {name:'علوم وتكنولوجيا',qs:[
+    {t:'ما الوحدة الأساسية للمعلومات في الحاسوب؟',a:'البت',p:100,d:1},
+    {t:'من اخترع الهاتف؟',a:'غراهام بيل',p:200,d:2},
+    {t:'ما الغاز الأوفر في الغلاف الجوي؟',a:'النيتروجين 78%',p:200,d:2},
+    {t:'ما سرعة الضوء؟',a:'300,000 كم/ث',p:300,d:3},
+    {t:'ما معنى HTTP؟',a:'HyperText Transfer Protocol',p:400,d:3},
+    {t:'كم عدد العناصر في الجدول الدوري؟',a:'118 عنصراً',p:400,d:3},
+    {t:'ما القيمة التقريبية لعدد أويلر e؟',a:'2.718',p:500,d:4},
+  ]},
+  {name:'جغرافيا',qs:[
+    {t:'ما أكبر قارة مساحةً؟',a:'آسيا',p:100,d:1},
+    {t:'ما أعلى جبل في العالم؟',a:'إيفرست',p:100,d:1},
+    {t:'ما أصغر دولة في العالم؟',a:'الفاتيكان',p:200,d:2},
+    {t:'ما أكبر صحراء في العالم؟',a:'الصحراء الكبرى',p:300,d:2},
+    {t:'أي دولة أكبر سكاناً؟',a:'الهند',p:200,d:2},
+    {t:'ما عاصمة أستراليا؟',a:'كانبيرا',p:300,d:3},
+    {t:'كم تبلغ مساحة روسيا تقريباً؟',a:'17 مليون كم²',p:500,d:4},
+  ]},
+  {name:'تاريخ',qs:[
+    {t:'متى انتهت الحرب العالمية الثانية؟',a:'1945م',p:100,d:1},
+    {t:'من أول إنسان على القمر؟',a:'نيل أرمسترونغ',p:200,d:2},
+    {t:'في أي عام اكتشف كولومبوس أمريكا؟',a:'1492م',p:300,d:2},
+    {t:'متى سقط جدار برلين؟',a:'1989م',p:300,d:3},
+    {t:'من بنى سور الصين العظيم؟',a:'إمبراطورية كين وآخرون',p:400,d:3},
+    {t:'في أي عام اختُرعت الطباعة بالحروف المتحركة؟',a:'1440م تقريباً — غوتنبرغ',p:500,d:4},
+  ]},
+  {name:'رياضيات',qs:[
+    {t:'كم ناتج 15 × 15؟',a:'225',p:100,d:1},
+    {t:'ما جذر 144؟',a:'12',p:100,d:1},
+    {t:'كم عدد درجات زوايا المثلث؟',a:'180 درجة',p:200,d:2},
+    {t:'ما قيمة π تقريباً؟',a:'3.14159',p:200,d:2},
+    {t:'كم ناتج 2 أس 10؟',a:'1024',p:300,d:3},
+    {t:'كم ناتج مجموع الأعداد 1 إلى 100؟',a:'5050',p:500,d:4},
+  ]},
 ];
 
 /* ══════════════════════════════════════════
@@ -759,7 +821,7 @@ function loadComp(id){
 function clearCels(){Object.keys(RCELS).forEach(k=>{Object.keys(RCELS[k]).forEach(x=>delete RCELS[k][x]);});}
 function initBank(){
   if(!G.cats||!G.cats.length){
-    G.cats=BANK0.map(b=>({id:'b_'+b.name,name:b.name,questions:b.qs.map((q,i)=>({id:'bq'+i,text:q.t,answer:q.a,pts:q.p,used:false,approved:true}))}));
+    G.cats=BANK0.map(b=>({id:'b_'+b.name,name:b.name,questions:b.qs.map((q,i)=>({id:'bq'+i,text:q.t,answer:q.a,pts:q.p,diff:q.d||1,used:false,approved:true}))}));
   }
 }
 
@@ -854,7 +916,12 @@ function updateTimerUI(){
     }catch(e){writeDispWin();}
   }
 }
-function setT(s){stopT();G.tSecs=s;G.tLeft=s;updateTimerUI();}
+function setT(s){
+  stopT();G.tSecs=s;G.tLeft=s;updateTimerUI();
+  // Update badge showing current default duration
+  const b=document.getElementById('tSecsBadge');
+  if(b)b.textContent=(s<60?s+'ث':Math.floor(s/60)+'د'+(s%60?s%60+'ث':''))+' مضبوط';
+}
 function toggleT(){G.tRun?stopT():startT();}
 function startT(){
   if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
@@ -884,11 +951,16 @@ function renderJudge(){
 function selPts(p){G.selPts=p;document.querySelectorAll('.pc').forEach(c=>c.classList.toggle('on',parseInt(c.textContent)===p));renderTRows();}
 function selTeam(i){G.selTeam=G.selTeam===i?-1:i;renderTRows();}
 function renderTRows(){document.getElementById('teamBtns').innerHTML=G.teams.map((t,i)=>`<div class="trow${i===G.selTeam?' win':''}" onclick="selTeam(${i})"><div class="trnm">${t.name}</div><div class="trsc">${t.score.toLocaleString()}</div><div class="awbdg">فائز +${G.selPts}</div></div>`).join('');}
+const DIFF_LABELS=['','⭐ سهل','⭐⭐ متوسط','⭐⭐⭐ صعب','🔥 تحدي'];
+const DIFF_COLORS=['','#10b981','#d97706','#f97316','#ef4444'];
 function updateAQ(){
   const q=G.activeQ;
   document.getElementById('aqtxt').textContent=q?q.text:'اختر سؤالاً أو تجاوز';
   const a=document.getElementById('aqans');a.textContent=q?.answer?'الإجابة: '+q.answer:'';a.classList.remove('on');
-  document.getElementById('aqpts').textContent=q?q.pts+' نقطة':'';
+  const d=q?.diff||1;
+  document.getElementById('aqpts').innerHTML=q
+    ?`<span>${q.pts} نقطة</span> <span style="margin-right:8px;font-size:.72rem;font-weight:700;color:${DIFF_COLORS[d]};">${DIFF_LABELS[d]}</span>`
+    :'';
   document.getElementById('sendQBtn').textContent=G.showQ?'إخفاء من الشاشة':'إرسال للشاشة';
 }
 function toggleAns(){document.getElementById('aqans').classList.toggle('on');}
@@ -896,9 +968,23 @@ function pickQ(){
   const pool=[];G.cats.forEach(cat=>cat.questions.forEach((q,qi)=>{if(!q.used&&q.approved!==false)pool.push({catId:cat.id,qIdx:qi,...q});}));
   if(!pool.length){alert('لا توجد أسئلة غير مستخدمة');return;}
   const q=G.qOrder==='random'?pool[~~(Math.random()*pool.length)]:pool[0];
-  G.activeQ={...q};updateAQ();pushBoards();
+  G.activeQ={...q};updateAQ();
+  // If showing on screen, restart timer for new question
+  if(G.showQ){stopT();G.tLeft=G.tSecs;startT();}
+  pushBoards();
 }
-function toggleSendQ(){G.showQ=!G.showQ;document.getElementById('sendQBtn').textContent=G.showQ?'إخفاء من الشاشة':'إرسال للشاشة';pushBoards();}
+function toggleSendQ(){
+  G.showQ=!G.showQ;
+  document.getElementById('sendQBtn').textContent=G.showQ?'إخفاء من الشاشة':'إرسال للشاشة';
+  if(G.showQ){
+    // Auto-start timer when showing question
+    stopT();G.tLeft=G.tSecs;
+    startT();
+  } else {
+    stopT();G.tLeft=G.tSecs;updateTimerUI();
+  }
+  pushBoards();
+}
 function confirmNext(){
   if(G.selTeam<0){alert('اختر الفريق الفائز');return;}
   if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
@@ -962,8 +1048,13 @@ function writeDispWin(){
     </div>`;
   }).join('');
 
+  const dLbl=['','⭐ سهل','⭐⭐ متوسط','⭐⭐⭐ صعب','🔥 تحدي'];
+  const dCol=['','#10b981','#d97706','#f97316','#ef4444'];
+  const aqd=G.activeQ?.diff||1;
   const qHTML=G.showQ&&G.activeQ?`<div style="background:${s1};border:2px solid rgba(79,70,229,.16);border-radius:20px;padding:26px 32px;margin-bottom:28px;text-align:center;box-shadow:0 4px 24px rgba(79,70,229,.12);">
+    <div style="font-size:.85rem;font-weight:700;color:${dCol[aqd]};margin-bottom:10px;">${dLbl[aqd]}</div>
     <div style="font-family:'Tajawal',sans-serif;font-size:1.9rem;font-weight:700;color:${textc};line-height:1.6;">${G.activeQ.text}</div>
+    <div style="font-size:.9rem;color:${muted};margin-top:8px;">${G.activeQ.pts} نقطة</div>
   </div>`:'';
 
   const timerHTML=`<div data-timer="1" style="font-family:'Tajawal',sans-serif;font-size:5.5rem;font-weight:900;color:${timerColor};line-height:1;margin-bottom:28px;${urg?'animation:blk .6s ease-in-out infinite;':''}">${fmt(G.tLeft)}</div>`;
@@ -1081,6 +1172,14 @@ function toggleSummary(){
 /* ══════════════════════════════════════════
    BANK
 ══════════════════════════════════════════ */
+let _diffFilter=0;
+function filterDiff(d){
+  _diffFilter=d;
+  document.querySelectorAll('.df-chip').forEach(c=>c.classList.toggle('on',parseInt(c.dataset.d)===d));
+  document.querySelectorAll('.qitem[data-diff]').forEach(el=>{
+    el.style.display=(d===0||parseInt(el.dataset.diff)===d)?'':'none';
+  });
+}
 function renderBank(judgeMode){
   document.getElementById('bankCatBtn').style.display=judgeMode?'flex':'none';
   document.getElementById('bankAIBtn').style.display=judgeMode?'flex':'none';
@@ -1089,13 +1188,13 @@ function renderBank(judgeMode){
   const ps=document.getElementById('pendingSec');
   if(judgeMode&&pending.length){
     ps.style.display='block';document.getElementById('pendCnt').textContent=pending.length;
-    document.getElementById('pendList').innerHTML=pending.map(({catId,qi,q})=>`<div class="qitem qpend"><div class="qitxt"><div class="qitext">${q.text}</div>${q.answer?`<div class="qians">الإجابة: ${q.answer}</div>`:''}<div class="qipts">${q.pts} نقطة</div></div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn b-grn b-sm" onclick="approveQ('${catId}',${qi})">موافقة ✓</button><button class="btn b-rg b-sm" onclick="rejectQ('${catId}',${qi})">رفض</button></div></div>`).join('');
+    document.getElementById('pendList').innerHTML=pending.map(({catId,qi,q})=>`<div class="qitem qpend" data-diff="${pending[0]?.q?.diff||1}"><div class="qitxt"><div class="qitext">${q.text}</div>${q.answer?`<div class="qians">الإجابة: ${q.answer}</div>`:''}<div class="qipts">${q.pts} نقطة</div></div><div style="display:flex;flex-direction:column;gap:4px;"><button class="btn b-grn b-sm" onclick="approveQ('${catId}',${qi})">موافقة ✓</button><button class="btn b-rg b-sm" onclick="rejectQ('${catId}',${qi})">رفض</button></div></div>`).join('');
   }else ps.style.display='none';
   const el=document.getElementById('bankCats');
   if(!G.cats.length){el.innerHTML='<div class="empty">لا توجد تصنيفات</div>';return;}
   el.innerHTML=G.cats.map(cat=>{
     const appr=cat.questions.filter(q=>q.approved!==false);
-    return `<div class="catbox" id="cb-${cat.id}"><div class="cathdr" onclick="togCat('${cat.id}')"><div class="cattl">${cat.name}</div><div class="catmt">${appr.length} سؤال · ${cat.questions.filter(q=>q.used).length} مستخدم</div>${judgeMode?`<div style="display:flex;gap:5px;"><button class="btn b-sm" style="background:rgba(79,70,229,.1);color:var(--a1);border:none;padding:4px 9px;" onclick="event.stopPropagation();openAI('${cat.id}')">✦ AI</button><button class="btn b-rg b-sm" onclick="event.stopPropagation();delCat('${cat.id}')">حذف</button></div>`:''}<div class="catarr">›</div></div><div class="catbody">${appr.map((q,qi)=>`<div class="qitem${q.used?' qused':''}"><div class="qitxt"><div class="qitext">${q.text}</div>${q.answer&&judgeMode?`<div class="qians">الإجابة: ${q.answer}</div>`:''}<div class="qipts">${q.pts} نقطة</div></div>${judgeMode?`<div style="display:flex;gap:3px;"><button class="btn b-gh b-sm" onclick="editQ('${cat.id}',${qi})">✎</button><button class="btn b-rg b-sm" onclick="delQ('${cat.id}',${qi})">✕</button></div>`:''}</div>`).join('')}${judgeMode?`<div class="addrow"><input type="text" placeholder="نص السؤال" id="qt-${cat.id}"><input type="text" placeholder="الإجابة" id="qa-${cat.id}" style="max-width:140px;"><select id="qp-${cat.id}">${G.pts.map(p=>`<option value="${p}">${p}</option>`).join('')}</select><button class="btn b-ind b-sm" onclick="addQ('${cat.id}')">اضافة</button></div>`:`<div class="addrow"><input type="text" placeholder="اقتراح سؤال" id="sqt-${cat.id}"><input type="text" placeholder="الإجابة" id="sqa-${cat.id}" style="max-width:130px;"><select id="sqp-${cat.id}">${G.pts.map(p=>`<option value="${p}">${p}</option>`).join('')}</select><button class="btn b-gh b-sm" onclick="suggestQ('${cat.id}')" style="padding:8px 9px;">اقتراح ↑</button></div>`}</div></div>`;
+    return `<div class="catbox" id="cb-${cat.id}"><div class="cathdr" onclick="togCat('${cat.id}')"><div class="cattl">${cat.name}</div><div class="catmt">${appr.length} سؤال · ${cat.questions.filter(q=>q.used).length} مستخدم</div>${judgeMode?`<div style="display:flex;gap:5px;"><button class="btn b-sm" style="background:rgba(79,70,229,.1);color:var(--a1);border:none;padding:4px 9px;" onclick="event.stopPropagation();openAI('${cat.id}')">✦ AI</button><button class="btn b-rg b-sm" onclick="event.stopPropagation();delCat('${cat.id}')">حذف</button></div>`:''}<div class="catarr">›</div></div><div class="catbody">${appr.map((q,qi)=>`<div class="qitem${q.used?' qused':''}"><div class="qitxt"><div class="qitext">${q.text}</div>${q.answer&&judgeMode?`<div class="qians">الإجابة: ${q.answer}</div>`:''}<div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span class="qipts">${q.pts} نقطة</span><span style="font-size:.69rem;font-weight:700;padding:1px 7px;border-radius:999px;${[0,'background:rgba(16,185,129,.12);color:#10b981','background:rgba(251,191,36,.15);color:#d97706','background:rgba(249,115,22,.12);color:#f97316','background:rgba(239,68,68,.12);color:#ef4444'][q.diff||1]}">${[0,'⭐ سهل','⭐⭐ متوسط','⭐⭐⭐ صعب','🔥 تحدي'][q.diff||1]}</span></div></div>${judgeMode?`<div style="display:flex;gap:3px;"><button class="btn b-gh b-sm" onclick="editQ('${cat.id}',${qi})">✎</button><button class="btn b-rg b-sm" onclick="delQ('${cat.id}',${qi})">✕</button></div>`:''}</div>`).join('')}${judgeMode?`<div class="addrow"><input type="text" placeholder="نص السؤال" id="qt-${cat.id}"><input type="text" placeholder="الإجابة" id="qa-${cat.id}" style="max-width:140px;"><select id="qp-${cat.id}">${G.pts.map(p=>`<option value="${p}">${p}</option>`).join('')}</select><select id="qd-${cat.id}" style="width:auto;flex:none;font-size:.78rem;"><option value="1">⭐ سهل</option><option value="2">⭐⭐ متوسط</option><option value="3">⭐⭐⭐ صعب</option><option value="4">🔥 تحدي</option></select><button class="btn b-ind b-sm" onclick="addQ('${cat.id}')">اضافة</button></div>`:`<div class="addrow"><input type="text" placeholder="اقتراح سؤال" id="sqt-${cat.id}"><input type="text" placeholder="الإجابة" id="sqa-${cat.id}" style="max-width:130px;"><select id="sqp-${cat.id}">${G.pts.map(p=>`<option value="${p}">${p}</option>`).join('')}</select><select id="sqd-${cat.id}" style="width:auto;flex:none;font-size:.78rem;"><option value="1">⭐ سهل</option><option value="2">⭐⭐ متوسط</option><option value="3">⭐⭐⭐ صعب</option><option value="4">🔥 تحدي</option></select><button class="btn b-gh b-sm" onclick="suggestQ('${cat.id}')" style="padding:8px 9px;">اقتراح ↑</button></div>`}</div></div>`;
   }).join('');
   G.cats.forEach(c=>document.getElementById('cb-'+c.id)?.classList.add('open'));
 }
@@ -1106,7 +1205,7 @@ function addQ(cid){
   const cat=G.cats.find(c=>c.id===cid);if(!cat)return;
   const t=document.getElementById('qt-'+cid)?.value.trim();if(!t)return;
   const a=document.getElementById('qa-'+cid)?.value.trim();const p=parseInt(document.getElementById('qp-'+cid)?.value)||G.pts[0];
-  cat.questions.push({id:'q_'+Date.now(),text:t,answer:a,pts:p,used:false,approved:true});
+  const diff=parseInt(document.getElementById('qd-'+cid)?.value)||1;cat.questions.push({id:'q_'+Date.now(),text:t,answer:a,pts:p,diff,used:false,approved:true});
   document.getElementById('qt-'+cid).value='';document.getElementById('qa-'+cid).value='';
   renderBank(true);saveH();
 }
@@ -1114,7 +1213,7 @@ function suggestQ(cid){
   const cat=G.cats.find(c=>c.id===cid);if(!cat)return;
   const t=document.getElementById('sqt-'+cid)?.value.trim();if(!t)return;
   const a=document.getElementById('sqa-'+cid)?.value.trim();const p=parseInt(document.getElementById('sqp-'+cid)?.value)||G.pts[0];
-  cat.questions.push({id:'q_'+Date.now(),text:t,answer:a,pts:p,used:false,approved:false});
+  const sdiff=parseInt(document.getElementById('sqd-'+cid)?.value)||1;cat.questions.push({id:'q_'+Date.now(),text:t,answer:a,pts:p,diff:sdiff,used:false,approved:false});
   document.getElementById('sqt-'+cid).value='';document.getElementById('sqa-'+cid).value='';
   alert('تم إرسال اقتراحك للمشرف للموافقة ✓');saveH();renderBank(false);
 }
