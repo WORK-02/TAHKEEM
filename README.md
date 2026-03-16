@@ -406,6 +406,7 @@ input[type=radio]{width:auto;padding:0;}
     <div class="nav-acts">
       <div class="pill">س <span id="qNum">1</span></div>
       <div class="iBtn" onclick="openBankJ()" title="بنك الأسئلة">📚</div>
+      <div class="iBtn" onclick="openDisplayWindow()" title="شاشة العرض">📺</div>
       <div class="iBtn" onclick="openJSettings()" title="إعدادات">⚙</div>
       <div class="iBtn" onclick="gHome()">⌂</div>
     </div>
@@ -475,22 +476,7 @@ input[type=radio]{width:auto;padding:0;}
   </div>
 </div>
 
-<!-- ════ DISPLAY ════ -->
-<div class="scr" id="S_display">
-  <div class="nav">
-    <div class="nav-brand" id="dispBrand">شاشة العرض</div>
-    <div class="nav-acts"><div class="iBtn" onclick="goS('S_home')">⌂</div></div>
-  </div>
-  <div class="bwrap" style="background:radial-gradient(ellipse 80% 55% at 50% -5%,rgba(79,70,229,.11) 0%,transparent 58%),var(--bg);">
-    <div class="disp-name" id="dispName">—</div>
-    <div class="bmeta" style="margin-bottom:16px;">السؤال <b id="dispQ">—</b></div>
-    <div class="disp-qbox" id="dispQBox">
-      <div class="disp-qtxt" id="dispQTxt">—</div>
-      <div class="disp-timer" id="dispTimer">—</div>
-    </div>
-    <div class="rwrap" id="dispRankings" style="max-width:860px;"></div>
-  </div>
-</div>
+<!-- display screen is now a separate popup window -->
 
 <!-- ════ BANK ════ -->
 <div class="scr" id="S_bank">
@@ -680,6 +666,7 @@ const BANK0=[
 ══════════════════════════════════════════ */
 let G={id:null,title:'',group:'',qOrder:'ordered',teams:[],pts:[100,200,300,400,500],cats:[],curQ:1,selPts:100,selTeam:-1,lastWin:-1,lastPts:0,log:[],activeQ:null,showQ:false,tSecs:30,tLeft:30,tRun:false,pin:'',done:false};
 const RCELS={live:{},player:{},display:{}};
+let dispWin=null; // popup display window
 const CH=76,CG=11;
 let tInt=null,pinVal='',pinTarget='',bankJ=false,aiCatId=null,esIdx=-1,jsTabI=0,admTabI=0;
 
@@ -741,9 +728,9 @@ function portal(type){
   }
   if(type==='player'){goS('S_playerPin');return;}
   if(type==='display'){
-    const h=getH();if(!G.id&&!h.length){alert('لا توجد مسابقة');return;}
+    const h=getH();if(!G.id&&!h.length){alert('لا توجد مسابقة جارية');return;}
     if(!G.id&&h.length){loadComp(h[0].id);}
-    goS('S_display');setTimeout(()=>renderDisplay(),260);
+    openDisplayWindow();
     return;
   }
   if(type==='bank'){bankJ=false;document.getElementById('bankCatBtn').style.display='none';document.getElementById('bankAIBtn').style.display='none';renderBank(false);goS('S_bank');return;}
@@ -856,8 +843,16 @@ function setupDone(){
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function updateTimerUI(){
   const v=fmt(G.tLeft),urg=G.tLeft<=5&&G.tLeft>0&&G.tRun;
-  const ids=['tdisp','dispTimer','playerTimer'];
-  ids.forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=v;el.classList.toggle('urg',urg);}});
+  // Update judge + player timer displays
+  ['tdisp','playerTimer'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent=v;el.classList.toggle('urg',urg);}});
+  // Update popup display window
+  if(dispWin&&!dispWin.closed){
+    try{
+      const dt=dispWin.document.querySelector('[data-timer]');
+      if(dt){dt.textContent=v;dt.style.color=urg?'#ef4444':'#4f46e5';dt.style.animation=urg?'blk .6s ease-in-out infinite':'';}
+      else writeDispWin(); // full re-render if timer element not found
+    }catch(e){writeDispWin();}
+  }
 }
 function setT(s){stopT();G.tSecs=s;G.tLeft=s;updateTimerUI();}
 function toggleT(){G.tRun?stopT():startT();}
@@ -930,9 +925,72 @@ function renderLog(){const el=document.getElementById('histLog');if(!G.log.lengt
 /* ══════════════════════════════════════════
    PUSH BOARDS
 ══════════════════════════════════════════ */
+function openDisplayWindow(){
+  dispWin=window.open('','quizDisplay','width=1280,height=800,scrollbars=no,toolbar=no,menubar=no');
+  if(!dispWin){alert('السماح بالنوافذ المنبثقة في المتصفح ثم حاول مجدداً');return;}
+  writeDispWin();
+}
+
+function writeDispWin(){
+  if(!dispWin||dispWin.closed)return;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const bg=dark?'#0d0d14':'#f0f2f8';
+  const s1=dark?'#17172a':'#ffffff';
+  const s2=dark?'#1e1e32':'#f4f5fb';
+  const brd=dark?'rgba(99,102,241,.16)':'rgba(79,70,229,.13)';
+  const textc=dark?'#eef0ff':'#1a1a2e';
+  const muted=dark?'#6060a0':'#8888aa';
+  const gold=dark?'#d97706':'#d97706';
+
+  const sorted=[...G.teams].map((t,i)=>({...t,oi:i})).sort((a,b)=>b.score-a.score);
+  const max=Math.max(...sorted.map(t=>t.score),1);
+  const urg=G.tLeft<=5&&G.tLeft>0&&G.tRun;
+  const timerColor=urg?'#ef4444':'#4f46e5';
+
+  const rankHTML=sorted.map((t,r)=>{
+    const pct=(t.score/max*100).toFixed(1);
+    const medBg=r===0?'linear-gradient(135deg,#fde68a,#d97706)':r===1?'linear-gradient(135deg,#e5e7eb,#9ca3af)':r===2?'linear-gradient(135deg,#fcd34d,#92400e)':'#e5e7eb';
+    const medTxt=r<3?'#fff':(dark?'#6060a0':'#8888aa');
+    const cardBg=r===0?(dark?'rgba(245,200,66,.06)':'#fffbeb'):s1;
+    const cardBrd=r===0?'rgba(217,119,6,.4)':r===1?'rgba(107,114,128,.22)':r===2?'rgba(146,64,14,.22)':brd;
+    const scorec=r===0?gold:(dark?'#a5b4fc':'#4f46e5');
+    return `<div style="display:flex;align-items:center;gap:16px;background:${cardBg};border:2px solid ${cardBrd};border-radius:18px;padding:18px 24px;position:relative;overflow:hidden;margin-bottom:14px;">
+      <div style="width:46px;height:46px;border-radius:50%;background:${medBg};display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;font-size:1.3rem;font-weight:900;color:${medTxt};flex-shrink:0;">${r+1}</div>
+      <div style="flex:1;font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:700;color:${textc};">${t.name}</div>
+      <div style="font-family:'Tajawal',sans-serif;font-size:1.9rem;font-weight:900;color:${scorec};">${t.score.toLocaleString()}</div>
+      <div style="position:absolute;bottom:0;right:0;left:0;height:5px;background:rgba(79,70,229,.06);"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#06b6d4,#4f46e5,#7c3aed);transition:width .9s;border-radius:0 0 0 18px;"></div></div>
+    </div>`;
+  }).join('');
+
+  const qHTML=G.showQ&&G.activeQ?`<div style="background:${s1};border:2px solid rgba(79,70,229,.16);border-radius:20px;padding:26px 32px;margin-bottom:28px;text-align:center;box-shadow:0 4px 24px rgba(79,70,229,.12);">
+    <div style="font-family:'Tajawal',sans-serif;font-size:1.9rem;font-weight:700;color:${textc};line-height:1.6;">${G.activeQ.text}</div>
+  </div>`:'';
+
+  const timerHTML=`<div data-timer="1" style="font-family:'Tajawal',sans-serif;font-size:5.5rem;font-weight:900;color:${timerColor};line-height:1;margin-bottom:28px;${urg?'animation:blk .6s ease-in-out infinite;':''}">${fmt(G.tLeft)}</div>`;
+
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<meta charset="UTF-8"><title>${G.title} — شاشة العرض</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Tajawal:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Cairo',sans-serif;background:${bg};color:${textc};min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 24px 40px;}
+  @keyframes blk{0%,100%{opacity:1;}50%{opacity:.45;}}
+</style></head><body>
+<div style="width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;">
+  <div style="font-family:'Tajawal',sans-serif;font-size:2.8rem;font-weight:900;background:linear-gradient(135deg,#4f46e5,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;text-align:center;">${G.title}${G.group?' — '+G.group:''}</div>
+  <div style="background:${s1};border:1.5px solid ${brd};border-radius:999px;padding:7px 22px;font-size:.95rem;font-weight:700;color:${muted};margin-bottom:24px;">السؤال <b style="color:#4f46e5;">${G.curQ}</b></div>
+  ${qHTML}
+  ${timerHTML}
+  ${rankHTML}
+</div>
+</body></html>`;
+
+  dispWin.document.open();dispWin.document.write(html);dispWin.document.close();
+}
+
 function pushBoards(){
   if(document.getElementById('S_player').classList.contains('on'))renderPlayer();
-  if(document.getElementById('S_display').classList.contains('on'))renderDisplay();
+  if(dispWin&&!dispWin.closed)writeDispWin();
 }
 
 /* ══════════════════════════════════════════
@@ -989,21 +1047,7 @@ function showPlayerHistory(){
   document.getElementById('playerHistList').innerHTML=G.log.map(r=>`<div class="qhi"><div class="qhi-q">س${r.q}: ${r._s?.aq?.text||'—'}</div><div class="qhi-m">الفائز: <span class="qhi-w">${r.team}</span> · +${r.pts}</div></div>`).join('');
 }
 
-/* ══════════════════════════════════════════
-   DISPLAY
-══════════════════════════════════════════ */
-function renderDisplay(){
-  if(!G.id&&!getH().length)return;
-  const h=getH();if(!G.id&&h.length)loadComp(h[0].id);
-  document.getElementById('dispBrand').textContent=G.title||'شاشة العرض';
-  document.getElementById('dispName').textContent=G.title+(G.group?' — '+G.group:'');
-  document.getElementById('dispQ').textContent=G.curQ;
-  const qb=document.getElementById('dispQBox');
-  if(G.showQ&&G.activeQ){qb.classList.add('on');document.getElementById('dispQTxt').textContent=G.activeQ.text;}
-  else{qb.classList.remove('on');}
-  document.getElementById('dispTimer').textContent=fmt(G.tLeft);
-  drawRankings('dispRankings','display');
-}
+/* display now via popup window — see writeDispWin() */
 
 /* ══════════════════════════════════════════
    LIVE
