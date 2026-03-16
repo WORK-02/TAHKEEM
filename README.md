@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -524,17 +524,22 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--a1);box-
 
 <!-- ══ DISPLAY (big screen) ══ -->
 <div class="screen" id="displayScreen">
-  <div style="position:absolute;top:12px;left:12px;z-index:10;">
-    <div class="icon-btn" onclick="goHome()">⌂</div>
-  </div>
-  <div class="disp-wrap">
-    <div class="disp-name" id="dispName">—</div>
-    <div style="text-align:center;margin-bottom:16px;"><span class="meta-pill">السؤال <b id="dispQ">—</b></span></div>
-    <div class="disp-qbox" id="dispQBox">
-      <div class="disp-qtext" id="dispQText">—</div>
-      <div class="disp-timer" id="dispTimer">—</div>
+  <div class="top-nav" style="background:var(--s1);border-bottom:1px solid var(--border);">
+    <div class="nav-brand" id="dispBrand">شاشة العرض</div>
+    <div class="nav-acts">
+      <div class="icon-btn" onclick="goHome()">⌂</div>
     </div>
-    <div class="disp-rwrap" id="dispRankings"></div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px 16px 32px;background:radial-gradient(ellipse 80% 55% at 50% -5%,rgba(79,70,229,.12) 0%,transparent 58%),var(--bg);">
+    <div class="disp-wrap">
+      <div class="disp-name" id="dispName">—</div>
+      <div style="text-align:center;margin-bottom:16px;"><span class="meta-pill">السؤال <b id="dispQ">—</b></span></div>
+      <div class="disp-qbox" id="dispQBox">
+        <div class="disp-qtext" id="dispQText">—</div>
+        <div class="disp-timer" id="dispTimer">—</div>
+      </div>
+      <div class="disp-rwrap" id="dispRankings"></div>
+    </div>
   </div>
 </div>
 
@@ -559,16 +564,33 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--a1);box-
 
 <!-- ══ LIVE ══ -->
 <div class="screen" id="liveScreen">
-  <div class="live-head">
-    <div class="live-name" id="liveName">—</div>
-    <div style="text-align:center;"><span class="meta-pill">السؤال <b id="liveQ">—</b></span></div>
+  <div class="top-nav">
+    <div class="nav-brand" id="liveBrand">النتائج</div>
+    <div class="nav-acts">
+      <div class="icon-btn" onclick="goTo('judgeScreen')" title="رجوع للمحكم">←</div>
+      <div class="icon-btn" onclick="goHome()">⌂</div>
+    </div>
   </div>
-  <div class="live-rw" id="liveRankings"></div>
-  <div class="live-footer" id="liveFooter"></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 18px 40px;background:radial-gradient(ellipse 80% 55% at 50% -5%,rgba(79,70,229,.1) 0%,transparent 58%),var(--bg);">
+    <div class="live-head">
+      <div class="live-name" id="liveName">—</div>
+      <div style="text-align:center;"><span class="meta-pill">السؤال <b id="liveQ">—</b></span></div>
+    </div>
+    <div class="live-rw" id="liveRankings"></div>
+    <div class="live-footer" id="liveFooter"></div>
+  </div>
 </div>
 
 <!-- ══ FINALE ══ -->
 <div class="screen" id="finaleScreen">
+  <div class="top-nav">
+    <div class="nav-brand">نهاية المسابقة</div>
+    <div class="nav-acts">
+      <div class="icon-btn" onclick="goTo('judgeScreen');renderJudge();" title="رجوع للمحكم">←</div>
+      <div class="icon-btn" onclick="goHome()">⌂</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:28px 18px 40px;background:radial-gradient(ellipse 90% 60% at 50% 0%,rgba(79,70,229,.14) 0%,transparent 65%),var(--bg);overflow-y:auto;">
   <div class="fwrap">
     <div class="ftrophy">🏆</div>
     <div style="color:var(--muted);font-size:1rem;font-weight:700;margin-bottom:3px;">الفائز</div>
@@ -829,7 +851,9 @@ function enterPortal(type){
   if(type==='display'){
     if(!G.id&&!getHistory().length){alert('لا توجد مسابقة جارية');return;}
     if(!G.id){const h=getHistory();loadCompById(h[0].id);}
-    renderDisplayBoard();goTo('displayScreen');return;
+    goTo('displayScreen');
+    setTimeout(()=>{renderDisplayBoard();},250);
+    return;
   }
   if(type==='bank'){
     bankFromJudge=false;
@@ -929,13 +953,15 @@ function checkPin(){
 function playerLogin(){
   const v=document.getElementById('playerCompPin').value.trim();
   const err=document.getElementById('playerPinErr');
+  err.textContent='';
   const h=getHistory();
-  const rec=h.find(x=>x.pin===v)||(v===''?null:h.find(x=>!x.pin&&v===''));
-  const found=h.find(x=>x.pin===v||(x.pin===''&&v===''));
-  if(!found&&v!==''){err.textContent='لم يتم العثور على مسابقة بهذا الرقم';return;}
-  if(!found&&v===''){if(!h.length){err.textContent='لا توجد مسابقة';return;}
-    loadCompById(h[0].id);}
-  else{loadCompById(found.id);}
+  if(!h.length){err.textContent='لا توجد مسابقات محفوظة';return;}
+  // find by pin match, or if no pin set use first comp
+  let found=null;
+  if(v===''){found=h.find(x=>!x.pin)||null;}
+  else{found=h.find(x=>x.pin===v)||null;}
+  if(!found){err.textContent='لم يتم العثور على مسابقة بهذا الرقم';return;}
+  loadCompById(found.id);
   renderPlayerBoard();
   goTo('playerScreen');
   if(G.finished){showPlayerHistory();}
@@ -1086,10 +1112,24 @@ function renderLog(){
 
 /* ═══════════════ STATE SYNC (player + display) ═══════════════ */
 function sendStateToBoards(){
-  // these screens update live if they're active
-  if(document.getElementById('playerScreen').classList.contains('active'))renderPlayerBoard();
-  if(document.getElementById('displayScreen').classList.contains('active'))renderDisplayBoard();
+  renderPlayerBoard();
+  renderDisplayBoard();
 }
+
+// Auto-refresh display and player every second for timer sync
+setInterval(()=>{
+  if(document.getElementById('displayScreen').classList.contains('active')){
+    // just update timer text, no full re-render needed
+    const dt=document.getElementById('dispTimer');if(dt)dt.textContent=fmt(G.timerLeft);
+    const urg=G.timerLeft<=5&&G.timerLeft>0&&G.timerRunning;
+    if(dt)dt.classList.toggle('urgent',urg);
+  }
+  if(document.getElementById('playerScreen').classList.contains('active')){
+    const pt=document.getElementById('playerTimer');if(pt)pt.textContent=fmt(G.timerLeft);
+    const urg=G.timerLeft<=5&&G.timerLeft>0&&G.timerRunning;
+    if(pt)pt.classList.toggle('urgent',urg);
+  }
+},1000);
 
 /* ═══════════════ RANKINGS RENDERER (shared FLIP) ═══════════════ */
 function renderRankings(wrapId,celsKey){
@@ -1149,6 +1189,8 @@ function showPlayerHistory(){
 
 /* ═══════════════ DISPLAY BOARD (big screen) ═══════════════ */
 function renderDisplayBoard(){
+  if(!G.id&&!getHistory().length)return;
+  document.getElementById('dispBrand').textContent=G.title||'شاشة العرض';
   document.getElementById('dispName').textContent=G.title+(G.group?' — '+G.group:'');
   document.getElementById('dispQ').textContent=G.currentQ;
   const qb=document.getElementById('dispQBox');
@@ -1162,16 +1204,16 @@ function renderDisplayBoard(){
 
 /* ═══════════════ LIVE BOARD ═══════════════ */
 function renderLive(){
+  document.getElementById('liveBrand').textContent=G.title;
   document.getElementById('liveName').textContent=G.title+(G.group?' — '+G.group:'');
   document.getElementById('liveQ').textContent=G.currentQ;
   document.getElementById('liveFooter').innerHTML=`
-    <button class="btn btn-grad" onclick="goNextFromLive()">السؤال التالي</button>
-    <button class="btn btn-ghost" onclick="showFinale()">إنهاء</button>
-    <button class="btn btn-ghost" onclick="goHome()">الرئيسية</button>`;
+    <button class="btn btn-grad" onclick="goNextFromLive()">السؤال التالي →</button>
+    <button class="btn btn-ghost" onclick="showFinale()">إنهاء المسابقة</button>`;
   renderRankings('liveRankings','live');
 }
 function goNextFromLive(){
-  G.currentQ++;G.selTeamIdx=-1;G.lastWinner=-1;G.lastPts:0;
+  G.currentQ++;G.selTeamIdx=-1;G.lastWinner=-1;G.lastPts=0;
   G.timerLeft=G.timerSecs;G.activeQuestion=null;G.showQOnDisplay=false;
   renderJudge();goTo('judgeScreen');
 }
