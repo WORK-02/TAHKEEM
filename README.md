@@ -1123,10 +1123,20 @@ async function genAI(){
       const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'OpenAI error');
       qs=JSON.parse(d.choices[0].message.content.replace(/```json|```/g,'').trim());
     }else{
-      // Gemini 2.0 flash — correct model name
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json'}})});
-      const d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Gemini error');
-      const raw=d.candidates[0].content.parts[0].text;
+      // Try Gemini models in order until one works
+      const MODELS=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-1.5-pro','gemini-2.0-flash','gemini-pro'];
+      let raw='',usedModel='',lastErr='';
+      for(const m of MODELS){
+        try{
+          const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+          const d=await r.json();
+          if(!r.ok){lastErr=(d.error?.message||'error')+' ('+m+')';continue;}
+          const t=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+          if(t){raw=t;usedModel=m;break;}
+        }catch(e){lastErr=e.message+' ('+m+')';continue;}
+      }
+      if(!raw)throw new Error(lastErr||'فشلت كل نماذج Gemini');
+      document.getElementById('aiRes').insertAdjacentHTML('beforeend',`<div style="font-size:.71rem;color:var(--muted);padding:4px 0;">النموذج: ${usedModel}</div>`);
       qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
     }
     if(!Array.isArray(qs))throw new Error('تنسيق غير صحيح');
